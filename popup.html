@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>Gallerify</title>
+    <link
+      rel="stylesheet"
+      href="popup.css"
+    />
+  </head>
+  <body>
+    <main>
+      <div class="topbar">
+        <div class="brand">
+          <span class="brand-mark">G</span
+          ><span>Gallerify</span>
+        </div>
+        <button
+          id="settings-toggle"
+          class="settings-button"
+          type="button"
+          aria-label="Image settings"
+          aria-expanded="false"
+          title="Image settings"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"
+            />
+            <path
+              d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <section
+        id="settings-panel"
+        hidden
+        aria-label="Image filtering settings"
+      >
+        <label class="filter-toggle"
+          ><input
+            id="ignore-small-images"
+            type="checkbox"
+            checked
+          /><span
+            >Ignore images below certain dimensions</span
+          ></label
+        >
+        <div class="dimension-fields">
+          <label
+            class="dimension-field"
+            for="minimum-width"
+            >Minimum width
+            <span
+              ><input
+                id="minimum-width"
+                type="number"
+                min="0"
+                max="4096"
+                step="1"
+                value="32"
+              />
+              px</span
+            ></label
+          >
+          <label
+            class="dimension-field"
+            for="minimum-height"
+            >Minimum height
+            <span
+              ><input
+                id="minimum-height"
+                type="number"
+                min="0"
+                max="4096"
+                step="1"
+                value="32"
+              />
+              px</span
+            ></label
+          >
+        </div>
+        <p class="settings-help">
+          Images smaller than both dimensions are hidden.
+          Videos are not affected.
+        </p>
+        <div class="setting-actions">
+          <button id="settings-back" class="button-secondary" type="button">Back</button>
+          <button id="settings-save" type="button" disabled>Save changes</button>
+        </div>
+        <div id="settings-message" role="status" aria-live="polite"></div>
+      </section>
+      <section id="main-content">
+        <label class="extension-state">
+          <input id="extension-enabled" type="checkbox" checked />
+          <span><strong>Enable on this site</strong><small id="site-label">Gallery controls for the current site</small></span>
+        </label>
+        <p>
+          Browse every image and video on this page in one
+          place.
+        </p>
+        <button
+          id="open-gallery"
+          type="button"
+        >
+          Open page gallery
+          <span aria-hidden="true">↗</span>
+        </button>
+        <div class="hint">
+          <span class="sparkle">✦</span> Hover any image,
+          then use its corner button to open it here.
+        </div>
+        <div class="hint">
+          Some sites load images only as you scroll. Scroll
+          the page first, then reopen the gallery.
+        </div>
+        <div class="task-tip">
+          Find Gallerify in Chrome Task Manager: press
+          <kbd>Shift</kbd> + <kbd>Esc</kbd>, then look for
+          <strong
+            >Extension: Gallerify — Page Media
+            Gallery</strong
+          >.
+        </div>
+        <div
+          id="message"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
