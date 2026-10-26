@@ -1,5 +1,3 @@
-// todo: improve the zoom feature (maybe use a lib for it)
-
 (() => {
   if (window.__gallerifyInstalled) return;
   window.__gallerifyInstalled = true;

@@ -2,11 +2,22 @@
 
 A Chrome extension that collects images and videos from the current page into a searchable gallery. Use the extension button to open the whole page, or hover a media item and click its small corner button to jump straight to it.
 
+## Build
+
+Requires Node.js and npm. Install the development dependency and create the unpacked extension in `dist/`:
+
+```sh
+npm install
+npm run build
+```
+
+Re-run `npm run build` after changing the source files.
+
 ## Install in Chrome
 
 1. Open `chrome://extensions`.
 2. Turn on **Developer mode**.
-3. Choose **Load unpacked** and select this folder.
+3. Choose **Load unpacked** and select the generated `dist/` folder.
 4. Open a webpage and click the Gallerify extension button.
 
 The extension reads media elements in the page you choose to use it on. Chrome blocks extensions on some internal pages, the Chrome Web Store, and certain protected pages.
