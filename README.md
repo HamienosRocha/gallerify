@@ -4,14 +4,14 @@ A Chrome extension that collects images and videos from the current page into a 
 
 ## Build
 
-Requires Node.js and npm. Install the development dependency and create the unpacked extension in `dist/`:
+The popup and content script are written in TypeScript. Requires Node.js and npm. Install the development dependencies, type-check the sources, and create the unpacked extension in `dist/`:
 
 ```sh
 npm install
 npm run build
 ```
 
-Re-run `npm run build` after changing the source files.
+Re-run `npm run build` after changing the source files. The build runs `tsc --noEmit` before bundling with Vite.
 
 ## Install in Chrome
 
@@ -25,7 +25,7 @@ The extension reads media elements in the page you choose to use it on. Chrome b
 ## Use
 
 - Click the toolbar button, then choose **Open page gallery** to view all detected media.
-- Toggle **Enable on this site** in the popup to turn gallery buttons and overlays on or off for the current website. Each hostname has its own saved setting.
+- Gallerify is disabled on every site by default. Turn on **Enable on this site** in the popup for each website where you want gallery buttons and overlays; each hostname has its own saved setting.
 - Hover an image or video and click the gallery icon in its upper-right corner to open that item in the viewer.
 - Use the gear in the popup to ignore small images. This is enabled by default and hides images smaller than both 32px wide and 32px high; adjust or disable the filter there. Videos are not affected.
 - Use **Save changes** in the image settings to save the filter and refresh an open gallery. **Back** discards pending edits.

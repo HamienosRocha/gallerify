@@ -33,7 +33,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(root, "popup.html"),
-        content: resolve(root, "content.js"),
+        content: resolve(root, "content.ts"),
       },
       output: {
         entryFileNames: (chunk) => chunk.name === "content" ? "content.js" : "assets/[name]-[hash].js",

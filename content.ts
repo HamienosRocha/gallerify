@@ -1,3 +1,18 @@
+interface Window {
+  __gallerifyInstalled?: boolean;
+}
+
+type MediaItem = {
+  type: "image" | "video";
+  url: string;
+  poster: string;
+  alt: string;
+  referrerPolicy?: string;
+  crossOrigin?: string;
+  node: HTMLImageElement | HTMLVideoElement;
+  nodes?: (HTMLImageElement | HTMLVideoElement)[];
+};
+
 (() => {
   if (window.__gallerifyInstalled) return;
   window.__gallerifyInstalled = true;
@@ -7,6 +22,7 @@
   Object.assign(host.style, { all: "initial", fontFamily: "system-ui, sans-serif", position: "fixed", inset: "0", zIndex: "2147483647", pointerEvents: "none" });
   (document.documentElement || document.body).append(host);
   const shadow = host.attachShadow({ mode: "open" });
+  const $ = <T extends HTMLElement = HTMLElement>(selector: string): T => shadow.querySelector(selector) as T;
   shadow.innerHTML = `
     <style>
       :host { all: initial; color-scheme: light; font-family: system-ui, sans-serif; }
@@ -91,20 +107,20 @@
       </div><div id="media-slot"></div><button class="tool nav" id="next" aria-label="Next media">›</button></div>
     </section>`;
 
-  const quick = shadow.querySelector("#quick");
-  const gallery = shadow.querySelector("#gallery");
-  const grid = shadow.querySelector("#grid");
-  const count = shadow.querySelector("#count");
-  const search = shadow.querySelector("#search");
-  const themeSelect = shadow.querySelector("#theme");
-  const viewer = shadow.querySelector("#viewer");
-  const slot = shadow.querySelector("#media-slot");
-  const empty = shadow.querySelector("#empty");
-  const locateButton = shadow.querySelector("#locate");
+  const quick = $<HTMLButtonElement>("#quick");
+  const gallery = $("#gallery");
+  const grid = $("#grid");
+  const count = $("#count");
+  const search = $<HTMLInputElement>("#search");
+  const themeSelect = $<HTMLSelectElement>("#theme");
+  const viewer = $("#viewer");
+  const slot = $("#media-slot");
+  const empty = $("#empty");
+  const locateButton = $<HTMLButtonElement>("#locate");
   let hovered = null;
   let quickHideTimer = 0;
   let quickPositionFrame = 0;
-  let extensionEnabled = true;
+  let extensionEnabled = false;
   let observer = null;
   let items = [];
   let shownItems = [];
@@ -153,7 +169,8 @@
   }
   applyTheme("auto");
   chrome.storage.local.get({ gallerifyTheme: "auto" }, ({ gallerifyTheme }) => {
-    applyTheme(["auto", "light", "dark"].includes(gallerifyTheme) ? gallerifyTheme : "auto");
+    const mode = String(gallerifyTheme);
+    applyTheme(["auto", "light", "dark"].includes(mode) ? mode : "auto");
   });
   themeSelect.addEventListener("change", () => {
     applyTheme(themeSelect.value);
@@ -199,24 +216,18 @@
     if (Object.keys(imageFilterDefaults).some((key) => key in changes)) {
       chrome.storage.local.get(imageFilterDefaults, applyImageFilterSettings);
     }
-    if ("gallerifySiteEnabled" in changes || "gallerifyExtensionEnabled" in changes) {
-      chrome.storage.local.get({ gallerifySiteEnabled: {}, gallerifyExtensionEnabled: true }, (settings) => {
+    if ("gallerifySiteEnabled" in changes) {
+      chrome.storage.local.get({ gallerifySiteEnabled: {} }, (settings) => {
         const states = settings.gallerifySiteEnabled || {};
         const siteKey = location.hostname.toLowerCase();
-        const enabled = Object.prototype.hasOwnProperty.call(states, siteKey)
-          ? states[siteKey] !== false
-          : settings.gallerifyExtensionEnabled !== false;
-        applyExtensionEnabled(enabled);
+        applyExtensionEnabled(states[siteKey] === true);
       });
     }
   });
-  chrome.storage.local.get({ gallerifySiteEnabled: {}, gallerifyExtensionEnabled: true }, (settings) => {
+  chrome.storage.local.get({ gallerifySiteEnabled: {} }, (settings) => {
     const states = settings.gallerifySiteEnabled || {};
     const siteKey = location.hostname.toLowerCase();
-    const enabled = Object.prototype.hasOwnProperty.call(states, siteKey)
-      ? states[siteKey] !== false
-      : settings.gallerifyExtensionEnabled !== false;
-    applyExtensionEnabled(enabled);
+    applyExtensionEnabled(states[siteKey] === true);
   });
 
   function applyExtensionEnabled(enabled) {
@@ -233,7 +244,7 @@
     }
   }
 
-  function mediaInfo(node) {
+  function mediaInfo(node: Element): MediaItem | null {
     if (node instanceof HTMLImageElement) {
       const lazySet = node.getAttribute("data-srcset") || node.getAttribute("data-lazy-srcset");
       const lazySetUrl = lazySet?.split(",").map((entry) => entry.trim().split(/\s+/)[0]).filter(Boolean).pop();
@@ -248,14 +259,14 @@
     return null;
   }
   function collect() {
-    const found = [];
+    const found: MediaItem[] = [];
     const seen = new Map();
-    document.querySelectorAll("img, video").forEach((node) => {
+    document.querySelectorAll<HTMLImageElement | HTMLVideoElement>("img, video").forEach((node) => {
       if (host.contains(node)) return;
       const info = mediaInfo(node);
       if (!info || isIgnoredSmallImage(node)) return;
       const rect = node.getBoundingClientRect();
-      if (node instanceof HTMLVideoElement && rect.width < 32 && rect.height < 32 && !node.complete) return;
+      if (node instanceof HTMLVideoElement && rect.width < 32 && rect.height < 32 && node.readyState < HTMLMediaElement.HAVE_METADATA) return;
       const key = `${info.type}:${info.url}`;
       if (seen.has(key)) found[seen.get(key)].nodes.push(node);
       else { info.nodes = [node]; seen.set(key, found.length); found.push(info); }
@@ -342,7 +353,7 @@
     viewerBaseWidth = 0;
     viewerBaseHeight = 0;
   }
-  function openGallery(target) {
+  function openGallery(target?: HTMLImageElement | HTMLVideoElement) {
     if (!extensionEnabled) return;
     stopQuickPositionTracking();
     collect();
@@ -473,14 +484,14 @@
   quick.addEventListener("click", (event) => { cancelQuickHide(); stopQuickPositionTracking(); event.preventDefault(); event.stopPropagation(); const target = hovered; quick.style.display = "none"; openGallery(target); });
   window.addEventListener("scroll", updateQuickPosition, true);
   window.addEventListener("resize", updateQuickPosition);
-  shadow.querySelector("#close").addEventListener("click", hideGallery);
-  shadow.querySelector("#refresh").addEventListener("click", () => { collect(); render(); });
-  shadow.querySelector("#close-viewer").addEventListener("click", hideGallery);
-  shadow.querySelector("#close-media").addEventListener("click", closeViewer);
+  $("#close").addEventListener("click", hideGallery);
+  $("#refresh").addEventListener("click", () => { collect(); render(); });
+  $("#close-viewer").addEventListener("click", hideGallery);
+  $("#close-media").addEventListener("click", closeViewer);
   locateButton.addEventListener("click", locateCurrentMedia);
   viewer.addEventListener("wheel", (event) => {
-    const image = slot.querySelector("img.zoomable");
-    if (!image || !viewer.classList.contains("open") || !viewerBaseWidth || !slot.contains(event.target)) return;
+    const image = slot.querySelector<HTMLImageElement>("img.zoomable");
+    if (!image || !viewer.classList.contains("open") || !viewerBaseWidth || !slot.contains(event.target as Node)) return;
     event.preventDefault();
     const previousZoom = viewerZoom;
     viewerZoom = Math.max(1, Math.min(8, viewerZoom * (event.deltaY < 0 ? 1.2 : 1 / 1.2)));
@@ -502,7 +513,7 @@
   }, { passive: false });
   let dragState = null;
   viewer.addEventListener("pointerdown", (event) => {
-    const image = slot.querySelector("img.zoomable.is-zoomed");
+    const image = slot.querySelector<HTMLImageElement>("img.zoomable.is-zoomed");
     if (!image || event.button !== 0 || event.target !== image) return;
     dragState = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, left: Number.parseFloat(image.style.left) || 0, top: Number.parseFloat(image.style.top) || 0, image };
     image.classList.add("is-dragging");
@@ -521,8 +532,8 @@
   }
   viewer.addEventListener("pointerup", finishImageDrag);
   viewer.addEventListener("pointercancel", finishImageDrag);
-  shadow.querySelector("#prev").addEventListener("click", () => openViewer(viewerIndex - 1));
-  shadow.querySelector("#next").addEventListener("click", () => openViewer(viewerIndex + 1));
+  $("#prev").addEventListener("click", () => openViewer(viewerIndex - 1));
+  $("#next").addEventListener("click", () => openViewer(viewerIndex + 1));
   search.addEventListener("input", () => render());
   viewer.addEventListener("click", (event) => {
     if (event.target === viewer || event.target === slot) closeViewer();

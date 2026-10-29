@@ -1,16 +1,16 @@
-const button = document.querySelector("#open-gallery");
-const message = document.querySelector("#message");
-const settingsToggle = document.querySelector("#settings-toggle");
-const settingsPanel = document.querySelector("#settings-panel");
-const mainContent = document.querySelector("#main-content");
-const ignoreSmallImages = document.querySelector("#ignore-small-images");
-const minimumWidth = document.querySelector("#minimum-width");
-const minimumHeight = document.querySelector("#minimum-height");
-const extensionEnabled = document.querySelector("#extension-enabled");
-const siteLabel = document.querySelector("#site-label");
-const backButton = document.querySelector("#settings-back");
-const saveButton = document.querySelector("#settings-save");
-const settingsMessage = document.querySelector("#settings-message");
+const button = document.querySelector<HTMLButtonElement>("#open-gallery")!;
+const message = document.querySelector<HTMLElement>("#message")!;
+const settingsToggle = document.querySelector<HTMLButtonElement>("#settings-toggle")!;
+const settingsPanel = document.querySelector<HTMLElement>("#settings-panel")!;
+const mainContent = document.querySelector<HTMLElement>("#main-content")!;
+const ignoreSmallImages = document.querySelector<HTMLInputElement>("#ignore-small-images")!;
+const minimumWidth = document.querySelector<HTMLInputElement>("#minimum-width")!;
+const minimumHeight = document.querySelector<HTMLInputElement>("#minimum-height")!;
+const extensionEnabled = document.querySelector<HTMLInputElement>("#extension-enabled")!;
+const siteLabel = document.querySelector<HTMLElement>("#site-label")!;
+const backButton = document.querySelector<HTMLButtonElement>("#settings-back")!;
+const saveButton = document.querySelector<HTMLButtonElement>("#settings-save")!;
+const settingsMessage = document.querySelector<HTMLElement>("#settings-message")!;
 button.disabled = true;
 saveButton.disabled = true;
 
@@ -25,12 +25,12 @@ function updateDimensionInputs() {
   minimumHeight.disabled = !ignoreSmallImages.checked;
 }
 
-function loadImageFilterSettings(onLoaded) {
+function loadImageFilterSettings(onLoaded: () => void = () => {}) {
   saveButton.disabled = true;
   chrome.storage.local.get(imageFilterDefaults, (settings) => {
     ignoreSmallImages.checked = settings.gallerifyIgnoreSmallImages !== false;
-    minimumWidth.value = settings.gallerifyMinimumImageWidth;
-    minimumHeight.value = settings.gallerifyMinimumImageHeight;
+    minimumWidth.value = String(settings.gallerifyMinimumImageWidth);
+    minimumHeight.value = String(settings.gallerifyMinimumImageHeight);
     updateDimensionInputs();
     saveButton.disabled = false;
     onLoaded?.();
@@ -65,11 +65,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     return;
   }
   siteLabel.textContent = `Gallery controls for ${currentSite}`;
-  chrome.storage.local.get({ gallerifySiteEnabled: {}, gallerifyExtensionEnabled: true }, (settings) => {
-    const states = settings.gallerifySiteEnabled || {};
-    const enabled = Object.prototype.hasOwnProperty.call(states, currentSite)
-      ? states[currentSite] !== false
-      : settings.gallerifyExtensionEnabled !== false;
+  chrome.storage.local.get({ gallerifySiteEnabled: {} }, (settings) => {
+    const states = (settings.gallerifySiteEnabled || {}) as Record<string, boolean>;
+    const enabled = states[currentSite] === true;
     extensionEnabled.checked = enabled;
     extensionEnabled.disabled = false;
     button.disabled = !enabled;
@@ -140,7 +138,7 @@ extensionEnabled.addEventListener("change", () => {
   if (!currentSite) return;
   button.disabled = !extensionEnabled.checked;
   chrome.storage.local.get({ gallerifySiteEnabled: {} }, (settings) => {
-    const states = { ...(settings.gallerifySiteEnabled || {}), [currentSite]: extensionEnabled.checked };
+    const states = { ...((settings.gallerifySiteEnabled || {}) as Record<string, boolean>), [currentSite]: extensionEnabled.checked };
     chrome.storage.local.set({ gallerifySiteEnabled: states });
   });
 });

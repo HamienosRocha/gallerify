@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build"
+    "build": "tsc --noEmit && vite build"
   },
   "devDependencies": {
+    "@types/chrome": "^0.1.36",
+    "typescript": "^5.8.3",
     "vite": "^6.4.1"
   }
 }
